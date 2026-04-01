@@ -104,6 +104,8 @@ export function reshuffle(gameState: GameState): GameState {
   }
 }
 
+// FIX: Remove history addition from drawNextHand
+// Now it ONLY draws the next hand without modifying history
 export function drawNextHand(gameState: GameState): GameState {
   if (gameState.drawPile.length < 3) {
     const reshuffledState = reshuffle(gameState)
@@ -113,14 +115,13 @@ export function drawNextHand(gameState: GameState): GameState {
   const newHand = drawHand(gameState.drawPile, 3, gameState.nonNumberTileValues)
   const remainingDrawPile = gameState.drawPile.slice(3)
   
-  const updatedHandHistory = gameState.currentHand 
-    ? [...gameState.handHistory, gameState.currentHand].slice(-5)
-    : gameState.handHistory
-  
+  // IMPORTANT: Do NOT add currentHand to history here
+  // History is only updated in resolveCurrentHand to prevent duplicates
   return {
     ...gameState,
     currentHand: newHand,
     drawPile: remainingDrawPile,
-    handHistory: updatedHandHistory
+    // Keep history unchanged - no addition here
+    handHistory: gameState.handHistory
   }
 }
