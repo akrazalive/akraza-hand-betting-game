@@ -1,22 +1,23 @@
 'use client'
 
 import { Tile as TileType } from '@/lib/game/types'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface TileProps {
   tile: TileType
   size?: 'sm' | 'md' | 'lg'
   showValue?: boolean
   onClick?: () => void
+  delay?: number
 }
 
 const sizeClasses = {
-  sm: 'w-12 h-16 text-xs',
-  md: 'w-16 h-20 text-sm',
-  lg: 'w-20 h-24 text-base'
+  sm: 'w-14 h-20 text-xs',
+  md: 'w-20 h-28 text-sm',
+  lg: 'w-24 h-32 text-base'
 }
 
-export default function Tile({ tile, size = 'md', showValue = true, onClick }: TileProps) {
+export default function Tile({ tile, size = 'md', showValue = true, onClick, delay = 0 }: TileProps) {
   const getTileSymbol = () => {
     switch (tile.suit) {
       case 'dots':
@@ -43,16 +44,26 @@ export default function Tile({ tile, size = 'md', showValue = true, onClick }: T
 
   const getTileColor = () => {
     if (tile.type === 'number') {
-      if (tile.suit === 'dots') return 'bg-blue-100 border-blue-400 text-blue-800'
-      if (tile.suit === 'bamboo') return 'bg-green-100 border-green-400 text-green-800'
-      return 'bg-red-100 border-red-400 text-red-800'
+      if (tile.suit === 'dots') return 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100'
+      if (tile.suit === 'bamboo') return 'bg-green-50 border-green-200 text-green-800 hover:bg-green-100'
+      return 'bg-red-50 border-red-200 text-red-800 hover:bg-red-100'
     }
-    return 'bg-purple-100 border-purple-400 text-purple-800'
+    return 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100'
   }
 
   return (
     <motion.div
-      whileHover={{ scale: 1.05 }}
+      initial={{ opacity: 0, scale: 0.8, rotateY: 90 }}
+      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+      exit={{ opacity: 0, scale: 0.8, rotateY: -90 }}
+      transition={{ 
+        duration: 0.3, 
+        delay,
+        type: "spring",
+        stiffness: 300,
+        damping: 20
+      }}
+      whileHover={{ y: -8, scale: 1.05, transition: { duration: 0.2 } }}
       whileTap={{ scale: 0.95 }}
       className={`
         ${sizeClasses[size]}
@@ -63,11 +74,24 @@ export default function Tile({ tile, size = 'md', showValue = true, onClick }: T
       `}
       onClick={onClick}
     >
-      <div className="text-2xl">{getTileSymbol()}</div>
+      <motion.div 
+        className="text-2xl sm:text-3xl"
+        animate={{ scale: showValue ? [1, 1.1, 1] : 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        {getTileSymbol()}
+      </motion.div>
       {showValue && (
-        <div className="absolute bottom-1 right-1 text-xs font-semibold">
+        <motion.div 
+          className="absolute bottom-1 right-1 text-xs font-semibold bg-white/50 px-1 rounded"
+          animate={tile.type !== 'number' ? { 
+            scale: [1, 1.2, 1],
+            color: ['#000', '#3b82f6', '#000']
+          } : {}}
+          transition={{ duration: 0.5 }}
+        >
           {tile.value}
-        </div>
+        </motion.div>
       )}
     </motion.div>
   )
