@@ -1,0 +1,33 @@
+hand-betting-game/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx          # Landing page
+│   │   ├── game/
+│   │   │   └── page.tsx      # Game page
+│   │   └── api/
+│   │       └── scores/
+│   │           └── route.ts  # API for leaderboard
+│   ├── components/
+│   │   ├── game/
+│   │   │   ├── GameBoard.tsx
+│   │   │   ├── Tile.tsx
+│   │   │   ├── HandHistory.tsx
+│   │   │   └── GameOverModal.tsx
+│   │   ├── landing/
+│   │   │   └── Leaderboard.tsx
+│   │   └── ui/
+│   ├── lib/
+│   │   ├── game/
+│   │   │   ├── types.ts
+│   │   │   ├── tileDeck.ts
+│   │   │   ├── gameEngine.ts
+│   │   │   └── scoring.ts
+│   │   └── supabase/
+│   │       └── client.ts
+│   └── hooks/
+│       └── useGame.ts
+├── supabase/
+│   └── migrations/
+├── .env.local
+└── package.json
