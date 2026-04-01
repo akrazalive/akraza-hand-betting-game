@@ -18,6 +18,13 @@ export interface Hand {
   isWin: boolean
 }
 
+export interface GameLogEntry {
+  id: string
+  message: string
+  type: 'info' | 'win' | 'loss' | 'value_change' | 'bet'
+  timestamp: Date
+}
+
 export interface GameState {
   score: number
   currentHand: Hand | null
@@ -29,6 +36,7 @@ export interface GameState {
   gameOver: boolean
   gameOverReason?: 'tileValue' | 'reshuffleLimit'
   gameOverTileId?: string
+  gameLogs: GameLogEntry[]  // Add this line
 }
 
 export interface BetType {

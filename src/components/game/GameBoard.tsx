@@ -6,6 +6,7 @@ import Tile from './Tile'
 import HandHistory from './HandHistory'
 import GameOverModal from './GameOverModal'
 import { motion } from 'framer-motion'
+import GameLog from './GameLog'
 
 interface GameBoardProps {
   onExit: (score: number) => void
@@ -166,6 +167,7 @@ export default function GameBoard({ onExit }: GameBoardProps) {
         {/* History */}
         <HandHistory history={gameState.handHistory} />
       </div>
+      <GameLog logs={gameState.gameLogs} />
     </div>
   )
 }

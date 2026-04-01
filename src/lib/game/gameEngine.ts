@@ -1,4 +1,4 @@
-import { GameState, Hand, BetType, Tile } from './types'
+import { GameState, Hand, BetType, Tile, GameLogEntry } from './types'
 import { 
   createFullDeck, 
   shuffleDeck, 
@@ -9,6 +9,17 @@ import { calculateHandTotalValue, calculateBetResult, shouldEndGame } from './sc
 
 // Re-export calculateHandTotalValue so it can be imported from gameEngine
 export { calculateHandTotalValue }
+
+let logIdCounter = 0
+
+function createLogEntry(message: string, type: GameLogEntry['type']): GameLogEntry {
+  return {
+    id: `log_${Date.now()}_${logIdCounter++}`,
+    message,
+    type,
+    timestamp: new Date()
+  }
+}
 
 export function initializeGame(): GameState {
   const fullDeck = createFullDeck()
@@ -25,7 +36,8 @@ export function initializeGame(): GameState {
     discardPile: [],
     reshuffleCount: 0,
     nonNumberTileValues: nonNumberValues,
-    gameOver: false
+    gameOver: false,
+    gameLogs: [createLogEntry('🎮 Game started! You have 1000 points', 'info')]  // Add this
   }
 }
 
@@ -100,7 +112,8 @@ export function reshuffle(gameState: GameState): GameState {
     ...gameState,
     drawPile: newDrawPile,
     discardPile: [],
-    reshuffleCount: gameState.reshuffleCount + 1
+    reshuffleCount: gameState.reshuffleCount + 1,
+    gameLogs: [...gameState.gameLogs, createLogEntry('🔄 Deck reshuffled!', 'info')]  // Add log
   }
 }
 
@@ -122,6 +135,7 @@ export function drawNextHand(gameState: GameState): GameState {
     currentHand: newHand,
     drawPile: remainingDrawPile,
     // Keep history unchanged - no addition here
-    handHistory: gameState.handHistory
+    handHistory: gameState.handHistory,
+    gameLogs: gameState.gameLogs  // Preserve logs
   }
 }

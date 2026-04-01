@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { GameState, BetType } from '@/lib/game/types'
+import { GameState, BetType, GameLogEntry } from '@/lib/game/types'
 import {
   initializeGame,
   resolveBet,
@@ -10,6 +10,17 @@ import {
   drawNextHand,
   calculateHandTotalValue
 } from '@/lib/game/gameEngine'
+
+let logIdCounter = 0
+
+function createLogEntry(message: string, type: GameLogEntry['type']): GameLogEntry {
+  return {
+    id: `log_${Date.now()}_${logIdCounter++}`,
+    message,
+    type,
+    timestamp: new Date()
+  }
+}
 
 export function useGame() {
   const [gameState, setGameState] = useState<GameState | null>(null)
@@ -30,55 +41,84 @@ export function useGame() {
   const resolveCurrentHand = useCallback(() => {
     if (!gameState || !gameState.currentHand || !currentBet) return
 
-    // Calculate actual value of the hand
     const actualValue = calculateHandTotalValue(gameState.currentHand, gameState.nonNumberTileValues)
     const { newScore, isWin } = resolveBet(gameState, currentBet, actualValue)
     
-    // Update non-number tile values based on win/loss
+    // Create logs for the outcome
+    const newLogs = [...gameState.gameLogs]
+    
+    // Add bet log
+    newLogs.push(createLogEntry(
+      `🎯 Bet ${currentBet.type.toUpperCase()} on ${currentBet.predictedHandValue}, actual hand value: ${actualValue}`,
+      'bet'
+    ))
+    
+    // Add outcome log
+    newLogs.push(createLogEntry(
+      isWin 
+        ? `✅ WIN! You gained +${actualValue} points! New score: ${newScore}`
+        : `❌ LOSS! You lost ${actualValue} points! New score: ${newScore}`,
+      isWin ? 'win' : 'loss'
+    ))
+    
     const updatedNonNumberValues = updateNonNumberTileValues(
       gameState.currentHand,
       gameState.nonNumberTileValues,
       isWin
     )
     
-    // Create updated hand with win status
+    // Log tile value changes
+    gameState.currentHand.tiles.forEach(tile => {
+      if (tile.type !== 'number') {
+        const oldValue = gameState.nonNumberTileValues.get(tile.id) || 5
+        const newValue = updatedNonNumberValues.get(tile.id) || 5
+        if (oldValue !== newValue) {
+          newLogs.push(createLogEntry(
+            `🀄 ${tile.displayValue} ${tile.type} tile changed from ${oldValue} to ${newValue} (${isWin ? 'WIN' : 'LOSS'})`,
+            'value_change'
+          ))
+        }
+      }
+    })
+    
     const updatedHand = {
       ...gameState.currentHand,
       isWin
     }
     
-    // FIX: Add the resolved hand to history ONCE here
     const updatedHistory = [...gameState.handHistory, updatedHand]
     
-    // Create new game state with updated score and history
     let newGameState: GameState = {
       ...gameState,
       score: newScore,
       currentHand: updatedHand,
       nonNumberTileValues: updatedNonNumberValues,
-      handHistory: updatedHistory  // History added only once
+      handHistory: updatedHistory,
+      gameLogs: newLogs
     }
     
-    // Check if game over conditions are met
     const gameOverCheck = checkGameOver(updatedNonNumberValues, newGameState.reshuffleCount)
     
     if (gameOverCheck.isOver) {
-      // Game over - don't draw next hand
       newGameState = {
         ...newGameState,
         gameOver: true,
         gameOverReason: gameOverCheck.reason,
         gameOverTileId: gameOverCheck.tileId
       }
-      setGameState(newGameState)
-      setCurrentBet(null)
-      return { isWin, newScore, actualValue }
+      newGameState.gameLogs.push(createLogEntry(
+        `💀 GAME OVER! Final score: ${newScore}`,
+        'info'
+      ))
+    } else {
+      newGameState = drawNextHand(newGameState)
+      newGameState.gameLogs.push(createLogEntry(
+        `🃏 New hand drawn! Current hand value: ${newGameState.currentHand?.totalValue}`,
+        'info'
+      ))
     }
     
-    // Draw next hand - drawNextHand will NOT add to history again
-    const nextState = drawNextHand(newGameState)
-    
-    setGameState(nextState)
+    setGameState(newGameState)
     setCurrentBet(null)
     
     return { isWin, newScore, actualValue }
