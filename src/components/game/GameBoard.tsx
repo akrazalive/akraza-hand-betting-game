@@ -8,6 +8,7 @@ import GameOverModal from './GameOverModal'
 import { AnimatePresence, motion } from 'framer-motion'
 import GameLog from './GameLog'
 import { soundService } from '@/lib/sound/soundService'
+import WarningPopup from '@/components/ui/WarningPopup'
 
 interface GameBoardProps {
   onExit: (score: number) => void
@@ -20,6 +21,8 @@ export default function GameBoard({ onExit }: GameBoardProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [showResult, setShowResult] = useState<{ type: 'win' | 'loss', value: number } | null>(null)
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [showWarning, setShowWarning] = useState(false) // Add this state
+  const [warningMessage, setWarningMessage] = useState('') // Add this state
 
   // Detect mobile screen size
   useEffect(() => {
@@ -58,13 +61,21 @@ export default function GameBoard({ onExit }: GameBoardProps) {
 
   const handlePlaceBet = (type: 'higher' | 'lower') => {
     if (predictedValue <= 0) {
-      alert('Please enter a valid predicted value')
+       // Show warning popup instead of alert
+      setWarningMessage('Please enter a valid predicted value')
+      setShowWarning(true)
+      soundService.playWarning() // Play warning sound
       return
     }
     console.log('🎵 Placing bet, playing sound...')
     placeBet(type, predictedValue)
     setBetPlaced(true)
     soundService.playBet()
+  }
+
+  // Add this close function
+  const closeWarning = () => {
+    setShowWarning(false)
   }
 
   const handleResolve = () => {
@@ -93,7 +104,14 @@ export default function GameBoard({ onExit }: GameBoardProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-    >
+    > 
+      {/* Add Warning Popup */}
+      <WarningPopup
+        message={warningMessage}
+        isVisible={showWarning}
+        onClose={closeWarning}
+        autoHideDuration={2000}
+      />
       <div className="max-w-6xl mx-auto">
         {/* Header - Stack on mobile */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-8">
