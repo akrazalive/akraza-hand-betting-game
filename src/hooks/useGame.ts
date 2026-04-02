@@ -97,7 +97,7 @@ export function useGame() {
       gameLogs: newLogs
     }
     
-    const gameOverCheck = checkGameOver(updatedNonNumberValues, newGameState.reshuffleCount)
+    const gameOverCheck = checkGameOver(updatedNonNumberValues, newGameState.score, newGameState.reshuffleCount)
     
     if (gameOverCheck.isOver) {
       newGameState = {

@@ -37,9 +37,16 @@ export function calculateBetResult(
 
 export function shouldEndGame(
   nonNumberValues: Map<string, number>,
+    currentScore: number,
   reshuffleCount: number,
   maxReshuffles: number = 3
-): { shouldEnd: boolean; reason?: 'tileValue' | 'reshuffleLimit'; tileId?: string } {
+): { shouldEnd: boolean; reason?: 'tileValue' | 'reshuffleLimit' | 'negativeScore'; tileId?: string } {
+  
+  // ADD THIS: Check for negative score FIRST
+  if (currentScore < 0) {
+    return { shouldEnd: true, reason: 'negativeScore' }
+  }
+
   // Check tile values
   for (const [tileId, value] of nonNumberValues.entries()) {
     if (value <= 0 || value >= 10) {

@@ -29,7 +29,7 @@ export function initializeGame(): GameState {
   const initialHand = drawHand(shuffledDeck, 3, nonNumberValues)
   
   return {
-    score: 1000,
+    score: 0,// 1000,
     currentHand: initialHand,
     handHistory: [],
     drawPile: shuffledDeck.slice(initialHand.tiles.length),
@@ -95,9 +95,10 @@ export function updateNonNumberTileValues(
 
 export function checkGameOver(
   nonNumberValues: Map<string, number>,
+   currentScore: number,
   reshuffleCount: number
-): { isOver: boolean; reason?: 'tileValue' | 'reshuffleLimit'; tileId?: string } {
-  const result = shouldEndGame(nonNumberValues, reshuffleCount)
+): { isOver: boolean; reason?: 'tileValue' | 'reshuffleLimit' | 'negativeScore'; tileId?: string } {
+  const result = shouldEndGame(nonNumberValues, currentScore, reshuffleCount)
   return {
     isOver: result.shouldEnd,
     reason: result.reason,

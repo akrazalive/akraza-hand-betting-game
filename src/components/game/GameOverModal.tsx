@@ -5,7 +5,7 @@ import { Trophy, RefreshCw, Home } from 'lucide-react'
 
 interface GameOverModalProps {
   score: number
-  reason?: 'tileValue' | 'reshuffleLimit'
+  reason?: 'tileValue' | 'reshuffleLimit' | 'negativeScore'
   tileId?: string
   onPlayAgain: () => void
   onExit: (score: number) => void
@@ -32,8 +32,11 @@ export default function GameOverModal({
             </div>
             <h2 className="text-3xl font-bold mb-2">Game Over!</h2>
             <p className="text-gray-600 mb-4">
-              {reason === 'tileValue' 
+              {
+              reason === 'tileValue' 
                 ? 'A tile reached its limit (0 or 10)!'
+                : reason === 'negativeScore'
+                ? 'Your score reached zero!'
                 : 'You ran out of reshuffles!'}
             </p>
             <div className="bg-gray-100 rounded-lg p-4 mb-6">

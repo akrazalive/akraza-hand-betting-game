@@ -34,7 +34,7 @@ export interface GameState {
   reshuffleCount: number
   nonNumberTileValues: Map<string, number>
   gameOver: boolean
-  gameOverReason?: 'tileValue' | 'reshuffleLimit'
+  gameOverReason?: 'tileValue' | 'reshuffleLimit' | 'negativeScore'
   gameOverTileId?: string
   gameLogs: GameLogEntry[]  // Add this line
 }
