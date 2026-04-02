@@ -48,5 +48,5 @@ export interface ScoreEntry {
   id?: string
   player_name: string
   score: number
-  created_at?: string
+  created_at: string
 }
