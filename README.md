@@ -41,49 +41,83 @@ This project was developed with assistance from AI for:
 
 All code has been reviewed and tested.
 
-## Project Structure
+Your Game Flow:
+User clicks "New Game" → Game starts → Player bets → Resolves hand → Updates score → Game over → Save score
 
-├───app
-│   │   globals.css
-│   │   layout.tsx
-│   │   page.tsx
-│   │
-│   ├───api
-│   │   └───scores
-│   │           route.ts
-│   │
-│   ├───game
-│   │       page.tsx
-│   │
-│   └───test-supabase
-│           page.tsx
+┌─────────────────────────────────────────────────────────────┐
+│                    APP LAYER (Next.js)                      │
+├─────────────────────────────────────────────────────────────┤
+│ app/page.tsx          → Landing page (New Game button + Leaderboard)
+│ app/game/page.tsx     → Game page (shows GameBoard)
+│ app/api/scores/route.ts → Saves/loads scores from database
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                  COMPONENTS LAYER (UI)                      │
+├─────────────────────────────────────────────────────────────┤
+│ GameBoard.tsx         → Main game screen (bets, resolve, animations)
+│ Tile.tsx              → Single tile display with animations
+│ HandHistory.tsx       → Shows previous hands
+│ GameOverModal.tsx     → Popup when game ends
+│ GameLog.tsx           → Shows game events log
+│ WarningPopup.tsx      → Error messages (like invalid bet)
+│ Leaderboard.tsx       → Shows top 5 scores
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    HOOKS LAYER (Logic)                      │
+├─────────────────────────────────────────────────────────────┤
+│ useGame.ts            → Manages game state, connects UI to engine
+│                         - placeBet(), resolveCurrentHand()
+│                         - resetGame(), tracks score
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    LIB LAYER (Core Rules)                   │
+├─────────────────────────────────────────────────────────────┤
+│ gameEngine.ts         → Main game rules:
+│                         - initializeGame() starts game
+│                         - drawNextHand() gets new tiles
+│                         - reshuffle() when deck empty
+│                         - checkGameOver() checks end conditions
 │
-├───components
-│   ├───game
-│   │       GameBoard.tsx
-│   │       GameLog.tsx
-│   │       GameOverModal.tsx
-│   │       HandHistory.tsx
-│   │       Tile.tsx
-│   │
-│   ├───landing
-│   │       Leaderboard.tsx
-│   │
-│   └───ui
-│           WarningPopup.tsx
+│ scoring.ts            → Math rules:
+│                         - calculateHandTotalValue()
+│                         - calculateBetResult() (win/loss)
+│                         - shouldEndGame() (tile values 0/10, reshuffle 3x)
 │
-├───hooks
-│       useGame.ts
+│ tileDeck.ts           → Tile creation:
+│                         - createFullDeck() makes 136 tiles
+│                         - shuffleDeck() randomizes
+│                         - getTileValue() returns tile points
 │
-└───lib
-    ├───game
-    │       gameEngine.ts
-    │       scoring.ts
-    │       tileDeck.ts
-    │       types.ts
-    │
-    ├───sound
-    │       soundService.ts
-    │
-    └───supabase
-            client.ts
+│ types.ts              → Defines data shapes (Tile, Hand, GameState)
+│
+│ soundService.ts       → Plays win/lose/bet sounds
+│ supabase/client.ts    → Database connection for leaderboard
+└─────────────────────────────────────────────────────────────┘
+
+🔄 How Data Flows (Simple Example)
+User clicks "Bet Higher":
+
+GameBoard.tsx calls handlePlaceBet('higher')
+
+→ Calls placeBet() from useGame.ts
+
+→ Saves bet type and predicted value
+
+User clicks "Resolve Hand":
+
+GameBoard.tsx calls handleResolve()
+
+→ Calls resolveCurrentHand() from useGame.ts
+
+→ useGame.ts calls resolveBet() from scoring.ts to calculate win/loss
+
+→ Calls updateNonNumberTileValues() from gameEngine.ts to update tile values
+
+→ Calls checkGameOver() to see if game should end
+
+→ Calls drawNextHand() for new tiles if game continues
+
+→ Updates state, UI re-renders automatically
